@@ -589,6 +589,54 @@ contract_abi = [
 contract_address = '0x4E8154B1cee2fC72274e7c74a86bA612195dc44D'
 contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
+# Connect to the ENS contract (domain --> UUID)
+ens_contract_abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_domainName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_uuidOfUser",
+				"type": "string"
+			}
+		],
+		"name": "registerDomain",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "payable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_domainName",
+				"type": "string"
+			}
+		],
+		"name": "getUUIDBydomain",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+ens_contract_address = '0xA0B299b458E9c9D5c7d9169b5e10500c5ffc0940'
+ens_contract = w3.eth.contract(address = ens_contract_address, abi = ens_contract_abi)
+
 ## Future upgrade for more then one accounts ( more then 1 UUID )
 # ItemIds = contract.functions.getItemIds(public_key).call()
 # ownerUUID = contract.functions.tokenURI(ItemIds[-1]).call()
@@ -667,6 +715,30 @@ givenName = dict_string['givenName']
 
 try:
 	transaction = contract.functions.updateMappingOfCredentialsAndGiven(ownerUUID, credentials_file_cid, givenName).build_transaction({
+		'chainId': 80001,  
+		'gas': 2000000,
+		'gasPrice': Web3.to_wei('50', 'gwei'),
+		'nonce': w3.eth.get_transaction_count(public_key),
+	})
+        
+    # Sign the transaction
+	signed_transaction = w3.eth.account.sign_transaction(transaction, private_key)
+
+	# Sending the signed transaction to the network:
+	transaction_hash = w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+
+	# Wait for the transaction to be mined
+	transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
+	
+	print("The transaction was successfully executed on the blockchain network: \n" + polygon_url + " \n\nFor this user: \n" + public_key)
+        
+except:
+    print("transaction failed")
+
+
+# Registering the domain given by the provider to the blockchain in order to connect the domain to the UUID of the user
+try:
+	transaction = ens_contract.functions.registerDomain(givenName, ownerUUID).build_transaction({
 		'chainId': 80001,  
 		'gas': 2000000,
 		'gasPrice': Web3.to_wei('50', 'gwei'),
