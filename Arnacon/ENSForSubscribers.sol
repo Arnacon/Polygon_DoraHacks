@@ -11,7 +11,7 @@ contract domainToUUID {
     string[] private domainList;
 
     function registerDomain(string memory _domainName , string memory _uuidOfUser) public {
-        domainToUUIDMap[_domainName] = _uuidOfUser; // list the domain under the domain given
+        domainToUUIDMap[_domainName] = _uuidOfUser; // list the UUID under the domain given
         domainList.push(_domainName); // write the domain in the domainList
     }
 
